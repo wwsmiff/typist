@@ -55,7 +55,8 @@ void TextInput::render()
   SDL_RenderCopy(m_renderer, m_rbracket_texture.get(), nullptr,
                  &m_rbracket_rect);
 
-  SDL_Rect tmp{m_position.x, m_position.y, m_value.size() * ui::letter_width_v,
+  SDL_Rect tmp{m_position.x, m_position.y,
+               static_cast<int32_t>(m_value.size() * ui::letter_width_v),
                m_height};
   SDL_RenderCopy(m_renderer, m_font_texture.get(), nullptr, &tmp);
 }

@@ -11,8 +11,9 @@ Text::Text(const std::string &value, SDL_Renderer *renderer, TTF_Font *font,
     : Widget{Widget::Type::Text, renderer, font, position, height, active},
       m_value{value}
 {
-  m_font_rect = SDL_Rect{m_position.x, m_position.y,
-                         m_value.size() * ui::letter_width_v, height};
+  m_font_rect = SDL_Rect{
+      m_position.x, m_position.y,
+      static_cast<int32_t>(m_value.size() * ui::letter_width_v), height};
 
   if (m_active)
   {

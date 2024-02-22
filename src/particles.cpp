@@ -19,7 +19,8 @@ void Particle::render(SDL_Renderer *renderer)
 {
   if (!is_dead())
   {
-    SDL_Rect tmp{position.x, position.y, size.x, size.y};
+    SDL_Rect tmp{static_cast<int32_t>(position.x),
+                 static_cast<int32_t>(position.y), size.x, size.y};
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, lifespan);
     SDL_RenderFillRect(renderer, &tmp);
   }
@@ -40,18 +41,15 @@ ParticleSystem::ParticleSystem(Vec2<int32_t> position, size_t num_particles)
     m_particles.emplace_back(Particle(
         {static_cast<float>(m_position.x), static_cast<float>(m_position.y)},
         {rng::f32(-0.3f, 0.3f), rng::f32(0.0f, 0.5f)}, {0, 1e-5}, {3, 3},
-        {rng::i32(0, 255), rng::i32(0, 255), rng::i32(0, 255), 0}, {255.0f},
-        {0.1f}));
+        {rng::i32(0, 255), rng::i32(0, 255), rng::i32(0, 255), 0}, 255.0f,
+        0.1f));
   }
 }
 
 void ParticleSystem::update(std::chrono::milliseconds dt)
 {
-  // if (m_active)
-  // {
   for (auto &particle : m_particles)
     particle.update(dt);
-  // }
 }
 
 void ParticleSystem::render(SDL_Renderer *renderer)
@@ -67,7 +65,8 @@ void ParticleSystem::set_position(Vec2<int32_t> position)
 
 bool ParticleSystem::is_dead() const
 {
-  return (std::count_if(m_particles.cbegin(), m_particles.cend(),
-                        [](const Particle &p)
-                        { return p.is_dead(); }) == m_particles.size());
+  return static_cast<size_t>(
+             std::count_if(m_particles.cbegin(), m_particles.cend(),
+                           [](const Particle &p) { return p.is_dead(); })) ==
+         m_particles.size();
 }

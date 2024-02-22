@@ -9,12 +9,16 @@ Selection::Selection() : Widget{} {}
 Selection::Selection(SDL_Renderer *renderer, TTF_Font *font,
                      Vec2<int32_t> position, int32_t height,
                      const std::vector<std::string> &values, bool active)
-    : Widget{renderer, font, position, height, active}, m_values{values}
+    : Widget{Widget::Type::Selection, renderer, font, position, height, active},
+      m_values{values}
 {
   m_left_arrow_rect = SDL_Rect{m_position.x - (ui::letter_width_v * 2),
                                m_position.y, ui::letter_width_v, m_height};
 
-  auto max_element = std::max_element(m_values.cbegin(), m_values.cend());
+  auto max_element =
+      std::max_element(m_values.cbegin(), m_values.cend(),
+                       [](const std::string &s1, const std::string &s2)
+                       { return s1.size() < s2.size(); });
 
   m_right_arrow_rect =
       SDL_Rect{m_position.x + ((1 + max_element->size()) * ui::letter_width_v),

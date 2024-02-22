@@ -28,7 +28,7 @@ public:
   void update(std::chrono::milliseconds dt);
   void render(SDL_Renderer *renderer);
   void set_position(Vec2<int32_t> position);
-  void emit();
+  bool is_dead() const;
 
 protected:
   Vec2<int32_t> m_position{};

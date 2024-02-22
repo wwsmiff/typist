@@ -18,9 +18,17 @@ constexpr int32_t letter_width_v{16};
 class Widget
 {
 public:
+  enum class Type
+  {
+    None = 0x0,
+    Text,
+    TextInput,
+    Selection
+  };
+
   Widget();
-  Widget(SDL_Renderer *renderer, TTF_Font *font, Vec2<int32_t> position,
-         int32_t height, bool active = false);
+  Widget(Type type, SDL_Renderer *renderer, TTF_Font *font,
+         Vec2<int32_t> position, int32_t height, bool active = false);
 
   virtual void handle_events(SDL_Event &event) = 0;
   virtual void render() = 0;
@@ -29,7 +37,10 @@ public:
 
   virtual std::string_view get_value() const = 0;
 
+  Type get_type() const;
+
 protected:
+  Type m_type{};
   SDL_Renderer *m_renderer{};
   TTF_Font *m_font{};
   Vec2<int32_t> m_position{};

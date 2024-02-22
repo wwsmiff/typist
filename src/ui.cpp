@@ -13,16 +13,19 @@ UniqueTexture load_word(TTF_Font *font, SDL_Renderer *renderer,
 }
 
 Widget::Widget()
-    : m_renderer{}, m_font{}, m_position{}, m_height{}, m_font_texture{}
+    : m_type{Widget::Type::None}, m_renderer{}, m_font{}, m_position{},
+      m_height{}, m_font_texture{}
 
 {
 }
 
-Widget::Widget(SDL_Renderer *renderer, TTF_Font *font, Vec2<int32_t> position,
-               int32_t height, bool active)
-    : m_renderer{renderer}, m_font{font}, m_position{position},
+Widget::Widget(Type type, SDL_Renderer *renderer, TTF_Font *font,
+               Vec2<int32_t> position, int32_t height, bool active)
+    : m_type{type}, m_renderer{renderer}, m_font{font}, m_position{position},
       m_height{height}, m_font_texture{}, m_active{active}
 {
 }
+
+Widget::Type Widget::get_type() const { return m_type; }
 
 }; // namespace ui

@@ -8,7 +8,8 @@ Text::Text() : Widget{}, m_value{} {}
 
 Text::Text(const std::string &value, SDL_Renderer *renderer, TTF_Font *font,
            Vec2<int32_t> position, int32_t height, bool active)
-    : Widget{renderer, font, position, height, active}, m_value{value}
+    : Widget{Widget::Type::Text, renderer, font, position, height, active},
+      m_value{value}
 {
   m_font_rect = SDL_Rect{m_position.x, m_position.y,
                          m_value.size() * ui::letter_width_v, height};

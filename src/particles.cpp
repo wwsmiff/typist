@@ -39,24 +39,25 @@ ParticleSystem::ParticleSystem(Vec2<int32_t> position, size_t num_particles)
   {
     m_particles.emplace_back(Particle(
         {static_cast<float>(m_position.x), static_cast<float>(m_position.y)},
-        {rng::f32(-0.3f, 0.3f), rng::f32(0.0f, 0.05f)}, {0, 0.0000000001f},
-        {3, 3}, {rng::i32(0, 255), rng::i32(0, 255), rng::i32(0, 255), 0},
-        {255.0f}, {0.01f}));
+        {rng::f32(-0.3f, 0.3f), rng::f32(0.0f, 0.5f)}, {0, 1e-5}, {3, 3},
+        {rng::i32(0, 255), rng::i32(0, 255), rng::i32(0, 255), 0}, {255.0f},
+        {0.1f}));
   }
 }
 
 void ParticleSystem::update(std::chrono::milliseconds dt)
 {
-  if (m_active)
-    for (auto &particle : m_particles)
-      particle.update(dt);
+  // if (m_active)
+  // {
+  for (auto &particle : m_particles)
+    particle.update(dt);
+  // }
 }
 
 void ParticleSystem::render(SDL_Renderer *renderer)
 {
-  if (m_active)
-    for (auto &particle : m_particles)
-      particle.render(renderer);
+  for (auto &particle : m_particles)
+    particle.render(renderer);
 }
 
 void ParticleSystem::set_position(Vec2<int32_t> position)
@@ -64,15 +65,9 @@ void ParticleSystem::set_position(Vec2<int32_t> position)
   m_position = position;
 }
 
-void ParticleSystem::emit()
+bool ParticleSystem::is_dead() const
 {
-  m_active = true;
-  for (size_t i = 0; i < m_particles.size(); ++i)
-  {
-    m_particles.at(i) = Particle(
-        {static_cast<float>(m_position.x), static_cast<float>(m_position.y)},
-        {rng::f32(-0.3f, 0.3f), rng::f32(0.0f, 0.7f)}, {0, 0.0001f}, {3, 3},
-        {rng::i32(0, 255), rng::i32(0, 255), rng::i32(0, 255), 0}, {255.0f},
-        {0.01f});
-  }
+  return (std::count_if(m_particles.cbegin(), m_particles.cend(),
+                        [](const Particle &p)
+                        { return p.is_dead(); }) == m_particles.size());
 }

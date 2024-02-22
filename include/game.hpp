@@ -3,6 +3,7 @@
 #include "particles.hpp"
 #include "star.hpp"
 #include "ui/selection.hpp"
+#include "ui/text.hpp"
 #include "ui/textinput.hpp"
 #include "ui/ui.hpp"
 #include "word.hpp"
@@ -60,6 +61,7 @@ protected:
   std::chrono::milliseconds m_delta{};
   ParticleSystem m_particle_system{};
   std::vector<std::unique_ptr<ui::Widget>> m_menu_widgets{};
+  size_t m_menu_selected{};
 
   void generate_word();
 };

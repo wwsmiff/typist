@@ -25,16 +25,18 @@ public:
   virtual void handle_events(SDL_Event &event) = 0;
   virtual void render() = 0;
 
-  void enable(bool active);
+  virtual void enable(bool active) = 0;
+
+  virtual std::string_view get_value() const = 0;
 
 protected:
   SDL_Renderer *m_renderer{};
   TTF_Font *m_font{};
   Vec2<int32_t> m_position{};
   int32_t m_height{};
-  std::string m_value{};
   UniqueTexture m_font_texture{};
   bool m_active{};
+  std::string m_value{};
 };
 
 }; // namespace ui

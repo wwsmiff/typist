@@ -13,8 +13,7 @@ UniqueTexture load_word(TTF_Font *font, SDL_Renderer *renderer,
 }
 
 Widget::Widget()
-    : m_renderer{}, m_font{}, m_position{}, m_height{}, m_value{},
-      m_font_texture{}
+    : m_renderer{}, m_font{}, m_position{}, m_height{}, m_font_texture{}
 
 {
 }
@@ -22,10 +21,8 @@ Widget::Widget()
 Widget::Widget(SDL_Renderer *renderer, TTF_Font *font, Vec2<int32_t> position,
                int32_t height, bool active)
     : m_renderer{renderer}, m_font{font}, m_position{position},
-      m_height{height}, m_value{}, m_font_texture{}, m_active{active}
+      m_height{height}, m_font_texture{}, m_active{active}
 {
 }
-
-void Widget::enable(bool active) { m_active = active; }
 
 }; // namespace ui

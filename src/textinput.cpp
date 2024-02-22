@@ -64,4 +64,6 @@ std::string_view TextInput::get_value() const { return m_value; }
 
 void TextInput::clear() { m_value.clear(); }
 
+void TextInput::enable(bool active) { m_active = active; }
+
 }; // namespace ui

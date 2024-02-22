@@ -179,7 +179,21 @@ Game::Game()
               ((std::string{"Punishing"}.size() * ui::letter_width_v) / 2),
           300},
       32,
-      {"Easy", "Medium", "Hard", "Punishing"}}});
+      {"Easy", "Medium", "Hard", "Punishing"},
+      true}});
+  m_menu_widgets.push_back(std::unique_ptr<ui::Widget>{new ui::Text{
+      "Start", m_renderer.get(), m_font.get(),
+      Vec2<int32_t>{
+          (config::window_width_v / 2) -
+              ((std::string{"Start"}.size() * ui::letter_width_v) / 2),
+          350},
+      32}});
+  m_menu_widgets.push_back(std::unique_ptr<ui::Widget>{new ui::Text{
+      "Exit", m_renderer.get(), m_font.get(),
+      Vec2<int32_t>{(config::window_width_v / 2) -
+                        ((std::string{"Exit"}.size() * ui::letter_width_v) / 2),
+                    400},
+      32}});
 }
 
 void Game::update(std::chrono::milliseconds delta)
@@ -210,8 +224,45 @@ void Game::handle_events()
 
     if (m_state == GameStates::MainMenu)
     {
+      auto update_widgets = [&]()
+      {
+        for (size_t i = 0; i < m_menu_widgets.size(); ++i)
+        {
+          if (i == m_menu_selected)
+            m_menu_widgets.at(m_menu_selected)->enable(true);
+          else
+            m_menu_widgets.at(i)->enable(false);
+        }
+      };
+
       for (const auto &widget : m_menu_widgets)
         widget->handle_events(m_event);
+      if (m_event.type == SDL_KEYDOWN)
+      {
+        if (m_event.key.keysym.sym == SDLK_DOWN)
+        {
+          m_menu_selected = (m_menu_selected >= m_menu_widgets.size() - 1)
+                                ? m_menu_widgets.size() - 1
+                                : m_menu_selected + 1;
+          update_widgets();
+        }
+        else if (m_event.key.keysym.sym == SDLK_UP)
+        {
+          m_menu_selected = (m_menu_selected <= 0) ? 0 : m_menu_selected - 1;
+          update_widgets();
+        }
+        else if (m_event.key.keysym.sym == SDLK_RETURN)
+        {
+          if (m_menu_widgets.at(m_menu_selected)->get_value() == "Start")
+          {
+            m_state = GameStates::MainLoop;
+          }
+          else if (m_menu_widgets.at(m_menu_selected)->get_value() == "Exit")
+          {
+            m_running = false;
+          }
+        }
+      }
     }
 
     if (m_state == GameStates::MainLoop)

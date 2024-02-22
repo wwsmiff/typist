@@ -18,4 +18,6 @@ target_sources(${PROJECT_NAME} PRIVATE
  src/particles.cpp
  src/ui.cpp
  src/selection.cpp
+ src/textinput.cpp
+ src/text.cpp
 )

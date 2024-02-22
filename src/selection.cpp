@@ -21,7 +21,8 @@ Selection::Selection(SDL_Renderer *renderer, TTF_Font *font,
                        { return s1.size() < s2.size(); });
 
   m_right_arrow_rect =
-      SDL_Rect{m_position.x + ((1 + max_element->size()) * ui::letter_width_v),
+      SDL_Rect{static_cast<int32_t>(m_position.x + ((1 + max_element->size()) *
+                                                    ui::letter_width_v)),
                m_position.y, ui::letter_width_v, m_height};
 
   if (m_active)
@@ -77,11 +78,13 @@ void Selection::render()
   SDL_RenderCopy(m_renderer, m_right_arrow.get(), nullptr, &m_right_arrow_rect);
 
   SDL_Rect selected_rect{
-      ui::letter_width_v / 2 +
+      static_cast<int32_t>(
+          ui::letter_width_v / 2 +
           (m_left_arrow_rect.x +
            ((m_right_arrow_rect.x - m_left_arrow_rect.x) / 2)) -
-          (m_values.at(m_selected).size() * ui::letter_width_v) / 2,
-      m_position.y, m_values.at(m_selected).size() * ui::letter_width_v,
+          (m_values.at(m_selected).size() * ui::letter_width_v) / 2),
+      m_position.y,
+      static_cast<int32_t>(m_values.at(m_selected).size() * ui::letter_width_v),
       m_height};
 
   SDL_RenderCopy(m_renderer, m_value_textures.at(m_selected).get(), nullptr,

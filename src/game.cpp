@@ -77,7 +77,7 @@ Game::Game()
     : m_window{loader::create_window_or_throw(), SDL_DestroyWindow},
       m_renderer{loader::create_renderer_or_throw(m_window.get()),
                  SDL_DestroyRenderer},
-      m_state{GameStates::MainMenu}, m_current_words{},
+      m_state{GameStates::MainMenu}, m_current_words{}
 {
   if (SDL_Init(SDL_INIT_VIDEO) != 0)
   {
@@ -145,21 +145,25 @@ Game::Game()
     // m_stars.emplace_back(SDL_Rect{, 1, 1}, star_colors.at(rng::i64(0, 1)));
 
     m_stars_vertices.push_back(
-        SDL_Vertex{{star_position.x, star_position.y + 1},
+        SDL_Vertex{{static_cast<float>(star_position.x),
+                    static_cast<float>(star_position.y) + 1},
                    {star_color.r, star_color.g, star_color.b, star_color.a},
                    {0, 0}});
 
     m_stars_vertices.push_back(
-        SDL_Vertex{{star_position.x + 1, star_position.y + 1},
+        SDL_Vertex{{static_cast<float>(star_position.x) + 1,
+                    static_cast<float>(star_position.y) + 1},
                    {star_color.r, star_color.g, star_color.b, star_color.a},
                    {0, 0}});
 
     m_stars_vertices.push_back(
-        SDL_Vertex{{star_position.x + 1, star_position.y},
+        SDL_Vertex{{static_cast<float>(star_position.x) + 1,
+                    static_cast<float>(star_position.y)},
                    {star_color.r, star_color.g, star_color.b, star_color.a},
                    {0, 0}});
     m_stars_vertices.push_back(
-        SDL_Vertex{{star_position.x, star_position.y},
+        SDL_Vertex{{static_cast<float>(star_position.x),
+                    static_cast<float>(star_position.y)},
                    {star_color.r, star_color.g, star_color.b, star_color.a},
                    {0, 0}});
     m_stars_indices.push_back(offset);
@@ -442,8 +446,10 @@ void Game::render()
         text = ui::load_word(m_font.get(), m_renderer.get(), word.value.data(),
                              config::reverse_color_v);
 
-      SDL_Rect text_rect{word.position.x, word.position.y,
-                         word.value.size() * ui::letter_width_v, 32};
+      SDL_Rect text_rect{
+          static_cast<int32_t>(word.position.x),
+          static_cast<int32_t>(word.position.y),
+          static_cast<int32_t>(word.value.size() * ui::letter_width_v), 32};
 
       SDL_RenderCopy(m_renderer.get(), text.get(), nullptr, &text_rect);
     }

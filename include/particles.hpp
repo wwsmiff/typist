@@ -10,7 +10,7 @@ struct Particle
   Vec2<float> position{};
   Vec2<float> velocity{};
   Vec2<float> acceleration{};
-  Vec2<float> size{};
+  Vec2<int32_t> size{};
   SDL_Color color{};
   float lifespan{};
   float decay_rate{};

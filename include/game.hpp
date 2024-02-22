@@ -2,7 +2,9 @@
 
 #include "particles.hpp"
 #include "star.hpp"
-#include "ui.hpp"
+#include "ui/selection.hpp"
+#include "ui/textinput.hpp"
+#include "ui/ui.hpp"
 #include "word.hpp"
 
 #include <SDL2/SDL.h>
@@ -17,6 +19,14 @@
 class Game
 {
 public:
+  enum class GameStates
+  {
+    MainMenu = 0x0,
+    MainLoop,
+    GameOver,
+    Pause
+  };
+
   Game();
   void update(std::chrono::milliseconds delta);
   void handle_events();
@@ -29,9 +39,11 @@ protected:
   std::unique_ptr<SDL_Window, std::function<void(SDL_Window *)>> m_window{};
   std::unique_ptr<SDL_Renderer, std::function<void(SDL_Renderer *)>>
       m_renderer{};
+  std::unique_ptr<TTF_Font, std::function<void(TTF_Font *)>> m_title_font{};
   std::unique_ptr<TTF_Font, std::function<void(TTF_Font *)>> m_font{};
   bool m_running{};
   SDL_Event m_event{};
+  GameStates m_state{};
   ui::TextInput m_textinput{};
   std::vector<std::string> m_wordlist{};
   std::vector<Word> m_current_words{};
@@ -47,5 +59,7 @@ protected:
   Vec2<int32_t> m_mouse_position{};
   std::chrono::milliseconds m_delta{};
   ParticleSystem m_particle_system{};
+  std::vector<std::unique_ptr<ui::Widget>> m_menu_widgets{};
+
   void generate_word();
 };

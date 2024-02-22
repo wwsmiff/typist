@@ -12,8 +12,10 @@ target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL2::SDL2 SDL2::SDL2main SDL2_ttf)
 target_sources(${PROJECT_NAME} PRIVATE 
  src/main.cpp
- src/ui.cpp
+ src/textinput.cpp
  src/game.cpp
  src/random.cpp
  src/particles.cpp
+ src/ui.cpp
+ src/selection.cpp
 )

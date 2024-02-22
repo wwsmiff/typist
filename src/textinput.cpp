@@ -6,7 +6,7 @@ namespace ui
 {
 TextInput::TextInput(SDL_Renderer *renderer, TTF_Font *font,
                      Vec2<int32_t> position, int32_t height)
-    : Widget{renderer, font, position, height}
+    : Widget{Widget::Type::TextInput, renderer, font, position, height}
 {
   m_lbracket_texture = UniqueTexture{
       load_word(m_font, m_renderer, "[", SDL_Color{255, 255, 255, 255})};

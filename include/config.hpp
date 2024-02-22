@@ -26,7 +26,7 @@ constexpr SDL_Color warning_color_v{252, 186, 3, 255};
 constexpr SDL_Color critical_color_v{191, 80, 80, 255};
 constexpr SDL_Color reverse_color_v{0, 204, 197, 255};
 
-constexpr SDL_Color inactive_widget_color_v{42, 42, 42, 255};
+constexpr SDL_Color inactive_widget_color_v{84, 84, 84, 255};
 constexpr SDL_Color active_widget_color_v{255, 255, 255, 255};
 
 }; // namespace config

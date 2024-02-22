@@ -28,6 +28,15 @@ public:
     Pause
   };
 
+  enum class DifficultyLevels
+  {
+    Easy = 0x0,
+    Medium,
+    Hard,
+    Punishing,
+    Zen
+  };
+
   Game();
   void update(std::chrono::milliseconds delta);
   void handle_events();
@@ -59,9 +68,19 @@ protected:
   std::vector<int32_t> m_stars_indices{};
   Vec2<int32_t> m_mouse_position{};
   std::chrono::milliseconds m_delta{};
-  ParticleSystem m_particle_system{};
+  std::vector<ParticleSystem> m_particle_systems{};
   std::vector<std::unique_ptr<ui::Widget>> m_menu_widgets{};
   size_t m_menu_selected{};
+  DifficultyLevels m_difficulty{};
 
   void generate_word();
+
+  const std::unordered_map<std::string_view, DifficultyLevels>
+      m_difficulty_string_map{
+          {"Easy", DifficultyLevels::Easy},
+          {"Medium", DifficultyLevels::Medium},
+          {"Hard", DifficultyLevels::Hard},
+          {"Punishing", DifficultyLevels::Punishing},
+          {"Zen", DifficultyLevels::Zen},
+      };
 };

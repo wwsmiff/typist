@@ -78,7 +78,6 @@ Game::Game()
       m_renderer{loader::create_renderer_or_throw(m_window.get()),
                  SDL_DestroyRenderer},
       m_state{GameStates::MainMenu}, m_current_words{},
-      m_particle_system{Vec2<int32_t>{0, 0}, 50}
 {
   if (SDL_Init(SDL_INIT_VIDEO) != 0)
   {
@@ -179,7 +178,7 @@ Game::Game()
               ((std::string{"Punishing"}.size() * ui::letter_width_v) / 2),
           300},
       32,
-      {"Easy", "Medium", "Hard", "Punishing"},
+      {"Easy", "Medium", "Hard", "Punishing", "Zen"},
       true}});
   m_menu_widgets.push_back(std::unique_ptr<ui::Widget>{new ui::Text{
       "Start", m_renderer.get(), m_font.get(),
@@ -209,7 +208,20 @@ void Game::update(std::chrono::milliseconds delta)
     for (auto &word : m_current_words)
       word.position.x += config::text_velocity_v * delta.count();
 
-    m_particle_system.update(delta);
+    if (m_particle_systems.size() > 0)
+    {
+      for (auto it = m_particle_systems.begin();
+           it != m_particle_systems.end();)
+      {
+        if (!it->is_dead())
+        {
+          it->update(delta);
+          it++;
+        }
+        else
+          m_particle_systems.erase(it);
+      }
+    }
   }
 }
 
@@ -255,12 +267,24 @@ void Game::handle_events()
         {
           if (m_menu_widgets.at(m_menu_selected)->get_value() == "Start")
           {
+            m_difficulty =
+                m_difficulty_string_map.at(m_menu_widgets.at(0)->get_value());
+
+            if (m_difficulty == DifficultyLevels::Zen)
+            {
+              m_textinput = ui::TextInput(
+                  m_renderer.get(), m_font.get(),
+                  Vec2<int32_t>{
+                      config::window_width_v / 2 -
+                          (config::word_limit_v * ui::letter_width_v / 2),
+                      config::text_input_position_vec2_v.y},
+                  config::font_size_v);
+            }
+
             m_state = GameStates::MainLoop;
           }
           else if (m_menu_widgets.at(m_menu_selected)->get_value() == "Exit")
-          {
             m_running = false;
-          }
         }
       }
     }
@@ -273,7 +297,7 @@ void Game::handle_events()
         if (m_event.key.keysym.sym == SDLK_RETURN)
         {
           for (auto it = m_current_words.begin(); it != m_current_words.end();
-               ++it)
+               it++)
           {
             if (it->position.x > config::window_width_v)
             {
@@ -281,8 +305,8 @@ void Game::handle_events()
               // TODO: decrement lives
               generate_word();
             }
-            if (it->type == WordType::Normal &&
-                m_textinput.get_value() == it->value)
+            else if (it->type == WordType::Normal &&
+                     m_textinput.get_value() == it->value)
             {
               m_score += m_textinput.get_value().size();
               m_score_texture =
@@ -295,10 +319,11 @@ void Game::handle_events()
                   static_cast<int32_t>(it->position.y)};
               m_current_words.erase(it);
               generate_word();
-              m_particle_system.set_position(Vec2<int32_t>{
-                  static_cast<int32_t>(destroyed_word_position.x),
-                  static_cast<int32_t>(destroyed_word_position.y)});
-              m_particle_system.emit();
+              m_particle_systems.push_back(ParticleSystem{
+                  Vec2<int32_t>{
+                      static_cast<int32_t>(destroyed_word_position.x),
+                      static_cast<int32_t>(destroyed_word_position.y)},
+                  50});
               break;
             }
             else if (it->type == WordType::Reverse &&
@@ -356,41 +381,45 @@ void Game::render()
 
     m_textinput.render();
 
-    static SDL_Rect score_rect{
-        config::score_position_vec2_v.x, config::score_position_vec2_v.y,
-        (std::string{"Score: "}.size() * ui::letter_width_v),
-        config::font_size_v};
+    if (m_difficulty != DifficultyLevels::Zen)
+    {
 
-    SDL_RenderCopy(m_renderer.get(), m_static_text.at(1).get(), nullptr,
-                   &score_rect);
+      static SDL_Rect score_rect{
+          config::score_position_vec2_v.x, config::score_position_vec2_v.y,
+          (std::string{"Score: "}.size() * ui::letter_width_v),
+          config::font_size_v};
 
-    SDL_Rect score_contents_rect = {
-        config::score_position_vec2_v.x + score_rect.w,
-        config::score_position_vec2_v.y,
-        static_cast<int32_t>(std::to_string(m_score).size() *
-                             ui::letter_width_v),
-        config::font_size_v};
+      SDL_RenderCopy(m_renderer.get(), m_static_text.at(1).get(), nullptr,
+                     &score_rect);
 
-    SDL_RenderCopy(m_renderer.get(), m_score_texture.get(), nullptr,
-                   &score_contents_rect);
+      SDL_Rect score_contents_rect = {
+          config::score_position_vec2_v.x + score_rect.w,
+          config::score_position_vec2_v.y,
+          static_cast<int32_t>(std::to_string(m_score).size() *
+                               ui::letter_width_v),
+          config::font_size_v};
 
-    static SDL_Rect lives_rect{
-        config::life_position_vec2_v.x, config::life_position_vec2_v.y,
-        (std::string{"Lives: "}.size() * ui::letter_width_v),
-        config::font_size_v};
+      SDL_RenderCopy(m_renderer.get(), m_score_texture.get(), nullptr,
+                     &score_contents_rect);
 
-    SDL_RenderCopy(m_renderer.get(), m_static_text.at(2).get(), nullptr,
-                   &lives_rect);
+      static SDL_Rect lives_rect{
+          config::life_position_vec2_v.x, config::life_position_vec2_v.y,
+          (std::string{"Lives: "}.size() * ui::letter_width_v),
+          config::font_size_v};
 
-    SDL_Rect lives_contents_rect = {
-        config::life_position_vec2_v.x + lives_rect.w,
-        config::life_position_vec2_v.y,
-        static_cast<int32_t>(std::to_string(m_lives).size() *
-                             ui::letter_width_v),
-        config::font_size_v};
+      SDL_RenderCopy(m_renderer.get(), m_static_text.at(2).get(), nullptr,
+                     &lives_rect);
 
-    SDL_RenderCopy(m_renderer.get(), m_lives_texture.get(), nullptr,
-                   &lives_contents_rect);
+      SDL_Rect lives_contents_rect = {
+          config::life_position_vec2_v.x + lives_rect.w,
+          config::life_position_vec2_v.y,
+          static_cast<int32_t>(std::to_string(m_lives).size() *
+                               ui::letter_width_v),
+          config::font_size_v};
+
+      SDL_RenderCopy(m_renderer.get(), m_lives_texture.get(), nullptr,
+                     &lives_contents_rect);
+    }
 
     for (auto &word : m_current_words)
     {
@@ -419,7 +448,9 @@ void Game::render()
       SDL_RenderCopy(m_renderer.get(), text.get(), nullptr, &text_rect);
     }
 
-    m_particle_system.render(m_renderer.get());
+    for (auto it = m_particle_systems.begin(); it != m_particle_systems.end();
+         ++it)
+      it->render(m_renderer.get());
   }
 
   SDL_RenderPresent(m_renderer.get());

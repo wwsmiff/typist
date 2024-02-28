@@ -15,6 +15,7 @@ public:
   TextInput();
   TextInput(SDL_Renderer *renderer, TTF_Font *font, Vec2<int32_t> position,
             int32_t height);
+
   void handle_events(SDL_Event &event);
   void render();
   std::string_view get_value() const;

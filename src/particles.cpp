@@ -41,8 +41,10 @@ ParticleSystem::ParticleSystem(Vec2<int32_t> position, size_t num_particles)
     m_particles.emplace_back(Particle(
         {static_cast<float>(m_position.x), static_cast<float>(m_position.y)},
         {rng::f32(-0.3f, 0.3f), rng::f32(0.0f, 0.5f)}, {0, 1e-5}, {3, 3},
-        {rng::i32(0, 255), rng::i32(0, 255), rng::i32(0, 255), 0}, 255.0f,
-        0.1f));
+        {static_cast<uint8_t>(rng::i32(0, 255)),
+         static_cast<uint8_t>(rng::i32(0, 255)),
+         static_cast<uint8_t>(rng::i32(0, 255)), 0},
+        255.0f, 0.1f));
   }
 }
 

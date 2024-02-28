@@ -79,6 +79,8 @@ Game::Game()
                  SDL_DestroyRenderer},
       m_state{GameStates::MainMenu}, m_current_words{}
 {
+  static_assert(std::is_move_assignable_v<ui::TextInput>);
+
   if (SDL_Init(SDL_INIT_VIDEO) != 0)
   {
     throw std::runtime_error(
@@ -102,8 +104,8 @@ Game::Game()
   m_running = true;
 
   m_textinput =
-      ui::TextInput(m_renderer.get(), m_font.get(),
-                    config::text_input_position_vec2_v, config::font_size_v);
+      ui::TextInput{m_renderer.get(), m_font.get(),
+                    config::text_input_position_vec2_v, config::font_size_v};
 
   std::ifstream wordlist_text{find_resources() / "wordlist.txt"};
   for (std::string line{}; std::getline(wordlist_text, line);)
@@ -178,8 +180,9 @@ Game::Game()
       m_renderer.get(),
       m_font.get(),
       Vec2<int32_t>{
-          (config::window_width_v / 2) -
-              ((std::string{"Punishing"}.size() * ui::letter_width_v) / 2),
+          static_cast<int32_t>(
+              (config::window_width_v / 2) -
+              ((std::string{"Punishing"}.size() * ui::letter_width_v) / 2)),
           300},
       32,
       {"Easy", "Medium", "Hard", "Punishing", "Zen"},
@@ -187,15 +190,18 @@ Game::Game()
   m_menu_widgets.push_back(std::unique_ptr<ui::Widget>{new ui::Text{
       "Start", m_renderer.get(), m_font.get(),
       Vec2<int32_t>{
-          (config::window_width_v / 2) -
-              ((std::string{"Start"}.size() * ui::letter_width_v) / 2),
+          static_cast<int32_t>(
+              (config::window_width_v / 2) -
+              ((std::string{"Start"}.size() * ui::letter_width_v) / 2)),
           350},
       32}});
   m_menu_widgets.push_back(std::unique_ptr<ui::Widget>{new ui::Text{
       "Exit", m_renderer.get(), m_font.get(),
-      Vec2<int32_t>{(config::window_width_v / 2) -
-                        ((std::string{"Exit"}.size() * ui::letter_width_v) / 2),
-                    400},
+      Vec2<int32_t>{
+          static_cast<int32_t>(
+              (config::window_width_v / 2) -
+              ((std::string{"Exit"}.size() * ui::letter_width_v) / 2)),
+          400},
       32}});
 }
 
@@ -368,7 +374,7 @@ void Game::render()
     static SDL_Rect title_rect{
         static_cast<int32_t>((config::window_width_v / 2) -
                              (std::string{"Typist"}.size() * 54 / 2)),
-        72, std::string{"Typist"}.size() * 54, 100};
+        72, static_cast<int32_t>(std::string{"Typist"}.size() * 54), 100};
     SDL_RenderCopy(m_renderer.get(), m_static_text.at(0).get(), nullptr,
                    &title_rect);
 
@@ -390,7 +396,8 @@ void Game::render()
 
       static SDL_Rect score_rect{
           config::score_position_vec2_v.x, config::score_position_vec2_v.y,
-          (std::string{"Score: "}.size() * ui::letter_width_v),
+          static_cast<int32_t>(std::string{"Score: "}.size() *
+                               ui::letter_width_v),
           config::font_size_v};
 
       SDL_RenderCopy(m_renderer.get(), m_static_text.at(1).get(), nullptr,
@@ -408,7 +415,8 @@ void Game::render()
 
       static SDL_Rect lives_rect{
           config::life_position_vec2_v.x, config::life_position_vec2_v.y,
-          (std::string{"Lives: "}.size() * ui::letter_width_v),
+          static_cast<int32_t>(std::string{"Lives: "}.size() *
+                               ui::letter_width_v),
           config::font_size_v};
 
       SDL_RenderCopy(m_renderer.get(), m_static_text.at(2).get(), nullptr,

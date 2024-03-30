@@ -22,6 +22,15 @@ std::filesystem::path find_resources()
   }
   return std::filesystem::path{};
 }
+
+enum StaticText
+{
+  Title,
+  GameOver,
+  Score,
+  Lives,
+};
+
 }; // namespace
 
 namespace loader
@@ -121,6 +130,9 @@ Game::Game()
   m_static_text.push_back(ui::load_word(m_title_font.get(), m_renderer.get(),
                                         "Typist", config::text_color_v));
 
+  m_static_text.push_back(ui::load_word(m_title_font.get(), m_renderer.get(),
+                                        "Game Over", config::text_color_v));
+
   m_static_text.push_back(ui::load_word(m_font.get(), m_renderer.get(),
                                         "Score: ", config::text_color_v));
 
@@ -144,7 +156,6 @@ Game::Game()
     Vec2<int32_t> star_position{rng::i32(0, config::window_width_v),
                                 rng::i32(0, config::window_height_v)};
     SDL_Color star_color = star_colors.at(rng::i64(0, 1));
-    // m_stars.emplace_back(SDL_Rect{, 1, 1}, star_colors.at(rng::i64(0, 1)));
 
     m_stars_vertices.push_back(
         SDL_Vertex{{static_cast<float>(star_position.x),
@@ -203,6 +214,15 @@ Game::Game()
               ((std::string{"Exit"}.size() * ui::letter_width_v) / 2)),
           400},
       32}});
+
+  m_game_over_widgets.push_back(std::unique_ptr<ui::Widget>{new ui::Text{
+      "Exit", m_renderer.get(), m_font.get(),
+      Vec2<int32_t>{
+          static_cast<int32_t>(
+              (config::window_width_v / 2) -
+              ((std::string{"Exit"}.size() * ui::letter_width_v) / 2)),
+          350},
+      32}});
 }
 
 void Game::update(std::chrono::milliseconds delta)
@@ -215,6 +235,26 @@ void Game::update(std::chrono::milliseconds delta)
 
   else if (m_state == GameStates::MainLoop)
   {
+
+    if (!m_lives)
+    {
+      m_state = GameStates::GameOver;
+    }
+
+    for (auto it = m_current_words.begin(); it != m_current_words.end();)
+    {
+      if (it->position.x > config::window_width_v)
+      {
+        m_current_words.erase(it);
+        m_lives = std::max(m_lives - 1, 0);
+        m_lives_texture =
+            ui::load_word(m_font.get(), m_renderer.get(),
+                          std::to_string(m_lives), config::text_color_v);
+      }
+      else
+        it++;
+    }
+
     for (auto &word : m_current_words)
       word.position.x += config::text_velocity_v * delta.count();
 
@@ -250,7 +290,7 @@ void Game::handle_events()
       {
         for (size_t i = 0; i < m_menu_widgets.size(); ++i)
         {
-          if (i == m_menu_selected)
+          if (static_cast<int32_t>(i) == m_menu_selected)
             m_menu_widgets.at(m_menu_selected)->enable(true);
           else
             m_menu_widgets.at(i)->enable(false);
@@ -270,7 +310,7 @@ void Game::handle_events()
         }
         else if (m_event.key.keysym.sym == SDLK_UP)
         {
-          m_menu_selected = (m_menu_selected <= 0) ? 0 : m_menu_selected - 1;
+          m_menu_selected = std::max(m_menu_selected - 1, 0);
           update_widgets();
         }
         else if (m_event.key.keysym.sym == SDLK_RETURN)
@@ -299,9 +339,10 @@ void Game::handle_events()
       }
     }
 
-    if (m_state == GameStates::MainLoop)
+    else if (m_state == GameStates::MainLoop)
     {
       m_textinput.handle_events(m_event);
+
       if (m_event.type == SDL_KEYDOWN)
       {
         if (m_event.key.keysym.sym == SDLK_RETURN)
@@ -309,14 +350,8 @@ void Game::handle_events()
           for (auto it = m_current_words.begin(); it != m_current_words.end();
                it++)
           {
-            if (it->position.x > config::window_width_v)
-            {
-              m_current_words.erase(it);
-              // TODO: decrement lives
-              generate_word();
-            }
-            else if (it->type == WordType::Normal &&
-                     m_textinput.get_value() == it->value)
+            if (it->type == WordType::Normal &&
+                m_textinput.get_value() == it->value)
             {
               m_score += m_textinput.get_value().size();
               m_score_texture =
@@ -354,6 +389,45 @@ void Game::handle_events()
         }
       }
     }
+
+    else if (m_state == GameStates::GameOver)
+    {
+      auto update_widgets = [&]()
+      {
+        for (size_t i = 0; i < m_game_over_widgets.size(); ++i)
+        {
+          if (static_cast<int32_t>(i) == m_game_over_selected)
+            m_game_over_widgets.at(m_game_over_selected)->enable(true);
+          else
+            m_game_over_widgets.at(i)->enable(false);
+        }
+      };
+
+      for (const auto &widget : m_game_over_widgets)
+        widget->handle_events(m_event);
+      if (m_event.type == SDL_KEYDOWN)
+      {
+        if (m_event.key.keysym.sym == SDLK_DOWN)
+        {
+          m_game_over_selected =
+              (m_game_over_selected >= m_game_over_widgets.size() - 1)
+                  ? m_game_over_widgets.size() - 1
+                  : m_game_over_selected + 1;
+          update_widgets();
+        }
+        else if (m_event.key.keysym.sym == SDLK_UP)
+        {
+          m_game_over_selected = std::max(m_game_over_selected - 1, 0);
+          update_widgets();
+        }
+        else if (m_event.key.keysym.sym == SDLK_RETURN)
+        {
+          if (m_game_over_widgets.at(m_game_over_selected)->get_value() ==
+              "Exit")
+            m_running = false;
+        }
+      }
+    }
   }
 }
 
@@ -362,23 +436,30 @@ void Game::render()
   SDL_SetRenderDrawColor(m_renderer.get(), 0, 0, 0, 255);
   SDL_RenderClear(m_renderer.get());
 
-  // for (const auto &star : m_stars)
-  // {
-  //   SDL_SetRenderDrawColor(m_renderer.get(), star.color.r, star.color.b,
-  //                          star.color.g, star.color.a);
-  //   SDL_RenderFillRect(m_renderer.get(), &star.rect);
-  // }
-
   if (m_state == GameStates::MainMenu)
   {
     static SDL_Rect title_rect{
         static_cast<int32_t>((config::window_width_v / 2) -
                              (std::string{"Typist"}.size() * 54 / 2)),
         72, static_cast<int32_t>(std::string{"Typist"}.size() * 54), 100};
-    SDL_RenderCopy(m_renderer.get(), m_static_text.at(0).get(), nullptr,
-                   &title_rect);
+    SDL_RenderCopy(m_renderer.get(), m_static_text.at(StaticText::Title).get(),
+                   nullptr, &title_rect);
 
     for (auto &widget : m_menu_widgets)
+      widget->render();
+  }
+
+  else if (m_state == GameStates::GameOver)
+  {
+    static SDL_Rect game_over_rect{
+        static_cast<int32_t>((config::window_width_v / 2) -
+                             (std::string{"Game Over"}.size() * 54 / 2)),
+        72, static_cast<int32_t>(std::string{"Game Over"}.size() * 54), 100};
+    SDL_RenderCopy(m_renderer.get(),
+                   m_static_text.at(StaticText::GameOver).get(), nullptr,
+                   &game_over_rect);
+
+    for (auto &widget : m_game_over_widgets)
       widget->render();
   }
 
@@ -400,7 +481,8 @@ void Game::render()
                                ui::letter_width_v),
           config::font_size_v};
 
-      SDL_RenderCopy(m_renderer.get(), m_static_text.at(1).get(), nullptr,
+      SDL_RenderCopy(m_renderer.get(),
+                     m_static_text.at(StaticText::Score).get(), nullptr,
                      &score_rect);
 
       SDL_Rect score_contents_rect = {
@@ -419,7 +501,8 @@ void Game::render()
                                ui::letter_width_v),
           config::font_size_v};
 
-      SDL_RenderCopy(m_renderer.get(), m_static_text.at(2).get(), nullptr,
+      SDL_RenderCopy(m_renderer.get(),
+                     m_static_text.at(StaticText::Lives).get(), nullptr,
                      &lives_rect);
 
       SDL_Rect lives_contents_rect = {

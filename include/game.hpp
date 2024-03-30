@@ -70,8 +70,13 @@ protected:
   std::chrono::milliseconds m_delta{};
   std::vector<ParticleSystem> m_particle_systems{};
   std::vector<std::unique_ptr<ui::Widget>> m_menu_widgets{};
-  size_t m_menu_selected{};
+  std::vector<std::unique_ptr<ui::Widget>> m_game_over_widgets{};
+  int32_t m_menu_selected{};
+  int32_t m_game_over_selected{};
   DifficultyLevels m_difficulty{};
+
+  std::string m_player_name{"Unknown"};
+  ui::TextInput m_player_name_input{};
 
   void generate_word();
 

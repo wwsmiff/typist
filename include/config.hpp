@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vec2.hpp"
+#include <SDL2/SDL.h>
 #include <cstdint>
 #include <string_view>
 

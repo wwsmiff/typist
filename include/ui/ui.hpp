@@ -37,6 +37,9 @@ public:
 
   virtual std::string_view get_value() const = 0;
 
+  Widget(Widget &&) = default;
+  Widget &operator=(Widget &&) = default;
+
   Type get_type() const;
 
 protected:
